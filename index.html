@@ -1628,7 +1628,7 @@ display: none;
 
 <h1 class="title toc-ignore">Useful codes</h1>
 <h4 class="author"></h4>
-<h4 class="date">Last compiled on 06 March, 2023</h4>
+<h4 class="date">Last compiled on 07 March, 2023</h4>
 
 </div>
 
@@ -1648,7 +1648,37 @@ display: none;
 </ul></li>
 </ul></li>
 <li><a href="#shiny" id="toc-shiny">Shiny</a></li>
-<li><a href="#sql-code" id="toc-sql-code">SQL code</a></li>
+<li><a href="#sql-code" id="toc-sql-code">SQL code</a>
+<ul>
+<li><a href="#tables" id="toc-tables">Tables</a>
+<ul>
+<li><a href="#create-table-and-import-csv-file-into-database" id="toc-create-table-and-import-csv-file-into-database">Create table and
+import csv file into database</a></li>
+<li><a href="#view-the-table" id="toc-view-the-table">View the
+table</a></li>
+<li><a href="#editing-the-table" id="toc-editing-the-table">Editing the
+table</a></li>
+<li><a href="#removing-the-table" id="toc-removing-the-table">Removing
+the table</a></li>
+</ul></li>
+<li><a href="#views" id="toc-views">Views</a>
+<ul>
+<li><a href="#create-a-view" id="toc-create-a-view">Create a
+view</a></li>
+<li><a href="#drop-the-view" id="toc-drop-the-view">Drop the
+view</a></li>
+</ul></li>
+<li><a href="#materialised-views" id="toc-materialised-views">Materialised views</a>
+<ul>
+<li><a href="#create-a-materialised-view" id="toc-create-a-materialised-view">Create a materialised view</a></li>
+<li><a href="#drop-the-materialised-view" id="toc-drop-the-materialised-view">Drop the materialised view</a></li>
+</ul></li>
+<li><a href="#trigger-functions" id="toc-trigger-functions">Trigger
+functions</a>
+<ul>
+<li><a href="#create-trigger-function" id="toc-create-trigger-function">Create trigger function</a></li>
+</ul></li>
+</ul></li>
 </ul>
 </div>
 
@@ -1659,7 +1689,7 @@ display: none;
 <pre><code>---
 title: &quot;Useful codes&quot;
 author: &#39;&#39;
-date: &quot;Last compiled on 06 March, 2023&quot;
+date: &quot;Last compiled on 07 March, 2023&quot;
 output:
   officedown::rdocx_document: default
   pdf_document:
@@ -1733,6 +1763,142 @@ set_flextable_defaults(table.layout = &quot;autofit&quot;)
 </div>
 <div id="sql-code" class="section level1">
 <h1>SQL code</h1>
+<div id="tables" class="section level2">
+<h2>Tables</h2>
+<div id="create-table-and-import-csv-file-into-database" class="section level3">
+<h3>Create table and import csv file into database</h3>
+<p>Need to first create a table, then import the file using copy or
+import directly through pgadmin</p>
+<pre><code>DROP TABLE IF EXISTS table_name;
+
+CREATE TABLE table_name(
+   id INT GENERATED ALWAYS AS IDENTITY, 
+   var_name_1 VARCHAR(40) NOT NULL,
+   var_name_2 VARCHAR(40) NOT NULL,
+   PRIMARY KEY(id)
+);
+
+
+COPY table_name(var_name_1,var_name_2,...)
+FROM &#39;file_location&#39; -- csv file
+DELIMITER &#39;,&#39;
+CSV HEADER;
+
+</code></pre>
+</div>
+<div id="view-the-table" class="section level3">
+<h3>View the table</h3>
+<pre><code>SELECT *
+FROM table_name
+-- WHERE, LIMIT, ORDER etc...</code></pre>
+</div>
+<div id="editing-the-table" class="section level3">
+<h3>Editing the table</h3>
+<p>INSERT INTO to insert a new row UPDATE to update the table (whole
+table or a single cell using WHERE clause)</p>
+<pre><code>
+INSERT INTO table_name (var_name_1,var_name_2,...)
+VALUES (&#39;a&#39;, &#39;b&#39;,...);
+
+UPDATE table_name
+SET var_name_1 = some_value
+WHERE ID = some_id;
+
+
+</code></pre>
+</div>
+<div id="removing-the-table" class="section level3">
+<h3>Removing the table</h3>
+<p>Use DROP TABLE to remove the table from the schema, or DELETE to
+remove the contents of the table</p>
+<p>Cannot drop the tables if views and materialized views depend on the
+the table</p>
+<pre><code>
+DROP TABLE IF EXISTS table_name
+
+DELETE FROM table_name
+</code></pre>
+</div>
+</div>
+<div id="views" class="section level2">
+<h2>Views</h2>
+<p>Views are stored queries. Does not contain data. Calls the query each
+time the view is called</p>
+<div id="create-a-view" class="section level3">
+<h3>Create a view</h3>
+<pre><code>
+CREATE VIEW view_name 
+AS 
+some_query
+
+eg:
+SELECT *
+FROM left_table
+LEFT JOIN right_table USING(some_id)
+</code></pre>
+</div>
+<div id="drop-the-view" class="section level3">
+<h3>Drop the view</h3>
+<p>DROP VIEW to remove the view</p>
+<pre><code>DROP VIEW IF EXISTS view_name;
+</code></pre>
+</div>
+</div>
+<div id="materialised-views" class="section level2">
+<h2>Materialised views</h2>
+<p>Materialised views contain data.</p>
+<div id="create-a-materialised-view" class="section level3">
+<h3>Create a materialised view</h3>
+<pre><code>
+CREATE MATERIALIZED VIEW mat_view_name
+AS
+some_query
+
+eg:
+SELECT *
+FROM left_table 
+LEFT JOIN right_table USING(some_id)
+WITH NO DATA; -- need to refresh data
+
+REFRESH MATERIALIZED VIEW mat_view_name;
+
+</code></pre>
+</div>
+<div id="drop-the-materialised-view" class="section level3">
+<h3>Drop the materialised view</h3>
+<pre><code>DROP MATERIALIZED VIEW IF EXISTS mat_view_name;</code></pre>
+</div>
+</div>
+<div id="trigger-functions" class="section level2">
+<h2>Trigger functions</h2>
+<p>Use trigger functions to do things when tables are changed, eg update
+materialised views</p>
+<div id="create-trigger-function" class="section level3">
+<h3>Create trigger function</h3>
+<p>First create a function, then create a trigger. Each table requires a
+separate trigger for updating materialized views when the table
+changes.</p>
+<pre><code>-- Trigger function to update a materialised view when a table is updated
+CREATE OR REPLACE FUNCTION some_function_name()
+    RETURNS TRIGGER
+    LANGUAGE PLPGSQL
+AS
+$$
+BEGIN
+    REFRESH MATERIALIZED VIEW mat_view_name;
+    RETURN NEW;
+END;
+$$;
+
+
+CREATE TRIGGER trigger_name 
+AFTER UPDATE OR INSERT OR DELETE ON table_name -- table that changes triggers the function  
+FOR EACH STATEMENT EXECUTE PROCEDURE some_function_name();
+
+-- check that trigger works by updating the table and checking the materialised view.
+</code></pre>
+</div>
+</div>
 </div>
 
 
